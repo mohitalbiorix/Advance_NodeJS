@@ -6,7 +6,7 @@ const sequlize = new Sequelize("emp_sequlize", "root", "Albiorix@1234", {
   dialect:
     "mysql" /* one of 'mysql' | 'postgres' | 'sqlite' | 'mariadb' | 'mssql' | 'db2' | 'snowflake' | 'oracle' */,
   pool: { max: 5, min: 0, idle: 10000 },
-  logging: false, // if we don't need to print query
+  logging: true, // if we don't need to print query
 });
 
 module.exports = sequlize;

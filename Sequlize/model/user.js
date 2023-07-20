@@ -12,6 +12,12 @@ const User = sequelize.define(
     username: {
       type: DataTypes.STRING,
       allowNull: false,
+      set(value) {
+        this.setDataValue("username", value + " patel"); // setter methode
+      },
+      get() {
+        return this.getDataValue("username") + " Patel";
+      },
     },
     email: {
       type: DataTypes.STRING,
@@ -19,6 +25,12 @@ const User = sequelize.define(
       unique: true,
       validate: {
         isEmail: true,
+      },
+    },
+    gender: {
+      type: DataTypes.STRING,
+      validate: {
+        isIn: [["male", "female"]],
       },
     },
   },

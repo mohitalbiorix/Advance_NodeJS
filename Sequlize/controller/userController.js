@@ -1,5 +1,8 @@
 const User = require("../model/user");
-const { Sequelize, Op } = require("sequelize");
+const { Sequelize, Op, QueryTypes } = require("sequelize");
+const sequlize = require("../db/sequlizedb");
+const Post = require("../model/post");
+const Tag = require("../model/tag");
 
 // add user
 const addUser = async (req, res) => {
@@ -11,85 +14,136 @@ const addUser = async (req, res) => {
 
   // shortcut way to create method, which combine build and save method
 
-  const { username, email } = req.body;
+  try {
+    const { username, email, gender } = req.body;
 
-  const user = await User.create({ username: username, email: email });
+    const user = await User.create({
+      username: username,
+      email: email,
+      gender: gender,
+    });
 
-  console.log(user.dataValues); // we can get values inside dataValues object
-  // here we can update data also
-  user.name = "dummy1";
-  user.reload(); // use for take old values untile data not save in database even if modify data.
+    console.log(user.dataValues); // we can get values inside dataValues object
 
-  // delete user
-  // user.destroy();
+    // here we can update data also
+    user.name = "dummy1";
+    user.reload(); // use for take old values untile data not save in database even if modify data.
 
-  res.status(201).send({
-    status: true,
-    message: "user added successfully!",
-  });
+    // delete user
+    // user.destroy();
+
+    res.status(201).send({
+      status: true,
+      message: "user added successfully!",
+    });
+  } catch (err) {
+    res.status(403).send({
+      status: false,
+      message: err,
+    });
+  }
 };
 
 // update user
 const updateUser = async (req, res) => {
-  const { username, email } = req.body;
-  const userId = req.params.id;
+  try {
+    const { username, email, gender } = req.body;
+    const userId = req.params.id;
 
-  await User.update(
-    { username: username, email: email },
-    {
-      where: {
-        id: userId,
-      },
-    }
-  );
-  res.status(201).send({
-    status: true,
-    message: "user updated successfully!",
-  });
+    await User.update(
+      { username: username, email: email, gender: gender },
+      {
+        where: {
+          id: userId,
+        },
+      }
+    );
+
+    res.status(201).send({
+      status: true,
+      message: "user updated successfully!",
+    });
+  } catch (err) {
+    console.log(err);
+    res.status(403).send({
+      status: true,
+      message: err,
+    });
+  }
 };
 
 // delete user
 const deleteUser = async (req, res) => {
-  const userId = req.params.id;
+  try {
+    const userId = req.params.id;
 
-  await User.destroy({
-    where: {
-      id: userId,
-    },
-  });
-  res.status(201).send({
-    status: true,
-    message: "user deleted successfully!",
-  });
+    await User.destroy({
+      where: {
+        id: userId,
+      },
+    });
+    res.status(201).send({
+      status: true,
+      message: "user deleted successfully!",
+    });
+  } catch (err) {
+    res.status(403).send({
+      status: true,
+      message: err,
+    });
+  }
 };
 
 // truncate user table
 const trancate = async (req, res) => {
-  await User.destroy({
-    truncate: true,
-  });
-  res.status(201).send({
-    status: true,
-    message: "table empty successfully!",
-  });
+  try {
+    await User.destroy({
+      truncate: true,
+    });
+    res.status(201).send({
+      status: true,
+      message: "table empty successfully!",
+    });
+  } catch (err) {
+    res.status(403).send({
+      status: true,
+      message: err,
+    });
+  }
 };
 
 // bulk-insert data
 const bulkInsert = async (req, res) => {
-  const users = req.body;
-  await User.bulkCreate(users);
-  let data = await User.findAll({});
-  console.log(data);
-  res.status(201).send({
-    status: true,
-    message: "inserted all users data successfully!",
-  });
+  try {
+    const users = req.body;
+    await User.bulkCreate(users);
+    let data = await User.findAll({});
+    console.log(data);
+    res.status(201).send({
+      status: true,
+      message: "inserted all users data successfully!",
+    });
+  } catch (err) {
+    res.status(403).send({
+      status: true,
+      message: err,
+    });
+  }
 };
 
 //get all users
 const getUsers = async (req, res) => {
-  let data = await User.findAll({});
-  res.status(201).send(data);
+  try {
+    // pass scopes
+    let data = await User.scope(["checkGender", "checkuserName"]).findAll({});
+    // let data = await User.findAll({});
+    res.status(201).send(data);
+  } catch (err) {
+    res.status(403).send({
+      status: true,
+      message: err,
+    });
+  }
 };
 
 // query
@@ -177,6 +231,147 @@ const finders = async (req, res) => {
   });
 };
 
+// setter and getter
+const setter = async (req, res) => {
+  try {
+    const { username, email } = req.body;
+    await User.create({ username: username, email: email });
+    res.send({
+      data: "user set successfully",
+    });
+  } catch (err) {
+    res.status(403).send({
+      status: true,
+      message: err,
+    });
+  }
+};
+
+const getter = async (req, res) => {
+  try {
+    const users = await User.findAll({});
+    res.send({
+      data: users,
+    });
+  } catch (err) {
+    res.status(403).send({
+      status: true,
+      message: err,
+    });
+  }
+};
+
+// rawQuery
+const rawQuery = async (req, res) => {
+  try {
+    // const users = await sequlize.query("Select * from users", {
+    //   type: QueryTypes.SELECT,
+    //   mapToModel: true,
+    //   raw: true
+    // });
+
+    const users = await sequlize.query(
+      "Select * from users where gender = $gender",
+      {
+        type: QueryTypes.SELECT,
+        // replacements:{ gender:'male'} //gender =:gender
+        //  replacements: ['female'] //gender = ?
+        // replacements: {gender: ['male','female']}   // gender IN(:gender)
+        // replacements: {searchEmail: '%gmail.com'}  // email LIKE :searchEmail
+        bind: { gender: "male" }, // gender = $gender
+      }
+    );
+
+    res.status(200).send({
+      data: users,
+    });
+  } catch (err) {
+    res.status(403).send({
+      status: true,
+      message: err,
+    });
+  }
+};
+
+// One to one
+const oneToone = async (req, res) => {
+  try {
+    let data = await User.findAll({
+      include: {
+        model: Post,
+        as: "PostDetails",
+        attributes: ["id", "name", "title"],
+      },
+      attributes: ["id", "username", "email"],
+      where: { id: 4 },
+    });
+    res.status(200).json(data);
+  } catch (err) {
+    res.status(403).send({
+      status: true,
+      message: err,
+    });
+  }
+};
+
+// belongsTo
+const belongsTo = async (req, res) => {
+  try {
+    let data = await Post.findAll({
+      include: {
+        model: User,
+        as: "UserDetails",
+      },
+      where: { user_id: 4 },
+    });
+    res.status(200).json(data);
+  } catch (err) {
+    res.status(403).send({
+      status: true,
+      message: err,
+    });
+  }
+};
+
+// oneTomany
+const oneTomany = async (req, res) => {
+  try {
+    let data = await User.findAll({
+      include: {
+        model: Post,
+        as: "PostDetails",
+        attributes: ["id", "name", "title", "user_id"],
+      },
+      attributes: ["id", "username", "email"],
+      where: { id: 4 },
+    });
+    res.status(200).json(data);
+  } catch (err) {
+    res.status(403).send({
+      status: true,
+      message: err,
+    });
+  }
+};
+
+//manyTomany
+const manyTomany = async (req, res) => {
+  try {
+    let data = await Tag.findAll({
+      include: {
+        model: Post,
+        as: "PostDetails",
+      },
+    });
+    res.status(200).json(data);
+  } catch (err) {
+    res.status(403).send({
+      status: true,
+      message: err,
+    });
+  }
+};
+
 module.exports = {
   addUser,
   updateUser,
@@ -186,4 +381,11 @@ module.exports = {
   getUsers,
   queries,
   finders,
+  setter,
+  getter,
+  rawQuery,
+  oneToone,
+  belongsTo,
+  oneTomany,
+  manyTomany,
 };

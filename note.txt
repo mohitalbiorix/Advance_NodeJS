@@ -9,3 +9,20 @@ updatedAt: false // show updated time based on value
 createdAt: false // show created time based on value,
 engine: 'MYISAM' // change dataypes of table,
 match: drop table on match condition
+
+* Validation and Constraints
+1. Validation
+    Validations are checks performed in the Sequelize level, in pure JavaScript. They can be arbitrarily complex if you provide a custom validator function, or can be one of the built-in validators offered by Sequelize. 
+    If a validation fails, no SQL query will be sent to the database at all.
+
+2. Constraints
+    Constraints are rules defined at SQL level. The most basic example of constraint is an Unique Constraint. If a constraint check fails, an error will be thrown by the database and Sequelize will forward this error to JavaScript.
+
+* Association
+    1. One To One
+    2. One To Many
+    3. Many To One
+    4. Many To Many
+
+* Scopes
+   Scopes are used to help you reuse code. You can define commonly used queries, specifying options such as where, include, limit, etc.
