@@ -10,6 +10,19 @@ createdAt: false // show created time based on value,
 engine: 'MYISAM' // change dataypes of table,
 match: drop table on match condition
 
+* Model Query
+    * Sequelize provides various methods to assist querying your database for data.
+
+* Query Finder
+    1. findAll
+    2. findByPk
+    3. findAndCountAll
+    4. findOrCreate
+    5. findOne
+
+* Getter and setter
+    * get and set values of data.
+
 * Validation and Constraints
 1. Validation
     Validations are checks performed in the Sequelize level, in pure JavaScript. They can be arbitrarily complex if you provide a custom validator function, or can be one of the built-in validators offered by Sequelize. 
@@ -24,5 +37,8 @@ match: drop table on match condition
     3. Many To One
     4. Many To Many
 
+* RawQuery
+    * Gettting data using bind query.
+    
 * Scopes
    Scopes are used to help you reuse code. You can define commonly used queries, specifying options such as where, include, limit, etc.
