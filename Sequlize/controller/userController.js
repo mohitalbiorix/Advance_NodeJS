@@ -3,6 +3,11 @@ const { Sequelize, Op, QueryTypes } = require("sequelize");
 const sequlize = require("../db/sequlizedb");
 const Post = require("../model/post");
 const Tag = require("../model/tag");
+const Image = require("../model/image");
+const Video = require("../model/video");
+const Comment = require("../model/comment");
+const Tag_Taggable = require("../model/tag_taggable");
+const Employee = require("../model/employee");
 
 // add user
 const addUser = async (req, res) => {
@@ -26,8 +31,8 @@ const addUser = async (req, res) => {
     console.log(user.dataValues); // we can get values inside dataValues object
 
     // here we can update data also
-    user.name = "dummy1";
-    user.reload(); // use for take old values untile data not save in database even if modify data.
+    // user.name = "dummy1";
+    // user.reload(); // use for take old values untile data not save in database even if modify data.
 
     // delete user
     // user.destroy();
@@ -37,6 +42,7 @@ const addUser = async (req, res) => {
       message: "user added successfully!",
     });
   } catch (err) {
+    console.log(err);
     res.status(403).send({
       status: false,
       message: err,
@@ -372,6 +378,161 @@ const manyTomany = async (req, res) => {
   }
 };
 
+// polymorphic one-to-many
+const oneTomanyPolymorphic = async (req, res) => {
+  try {
+    // image to comment
+    // let data = await Image.findAll({
+    //   include: {
+    //     model: Comment
+    //   },
+    // });
+
+    // video to comment
+    // let data = await Video.findAll({
+    //   include: {
+    //     model: Comment
+    //   },
+    // });
+
+    // comment to image/video
+    let data = await Comment.findAll({
+      where: {
+        commentableType: "video",
+      },
+      include: {
+        model: Video,
+      },
+    });
+
+    res.status(200).json(data);
+  } catch (err) {
+    console.log(err);
+    res.status(403).send({
+      status: true,
+      message: err,
+    });
+  }
+};
+
+// polymorphic many-to-many
+const manyTomanyPolymorphic = async (req, res) => {
+  try {
+    //img to tag
+    // let data = await Image.findAll({
+    //   include: {
+    //     model: Tag
+    //   },
+    // });
+
+    // video to tag
+    // let data = await Video.findAll({
+    //   include: {
+    //     model: Tag
+    //   },
+    // });
+
+    // tag to img
+    // let data = await Tag.findAll({
+    //   include:[Image,Video]
+    // });
+
+    res.status(200).json(data);
+  } catch (err) {
+    console.log(err);
+    res.status(403).send({
+      status: true,
+      message: err,
+    });
+  }
+};
+
+// loading
+const loading = async (req, res) => {
+  try {
+    // egar loading
+    let data = await User.findAll({
+      include: {
+        model: Post,
+        as: "PostDetails",
+        attributes: ["id", "name", "title", "user_id"],
+      },
+      attributes: ["id", "username", "email"],
+      where: { id: 4 },
+    });
+
+    // lazy loading but get+modelname not working
+    // let posts = data.getPost();
+    res.status(200).json(data);
+  } catch (err) {
+    res.status(403).send({
+      status: true,
+      message: err,
+    });
+  }
+};
+
+// paranoid
+const paranoid = async (req, res) => {
+  try {
+    // when we get soft delete records then add paranoid:false
+    // let data = await Employee.findAll({
+    //   paranoid:false
+    // });
+
+    // delete record
+    // let data = await Employee.destroy({
+    //   where:{
+    //     id:2
+    //   }
+    // });
+
+    // when restor record
+
+    let data = await Employee.restore({
+      where: {
+        id: 2,
+      },
+    });
+
+    res.status(200).json(data);
+  } catch (err) {
+    res.status(403).send({
+      status: true,
+      message: err,
+    });
+  }
+};
+
+const transaction = async (req, res) => {
+  const t = await sequlize.transaction();
+  const { username, email, gender } = req.body;
+  try {
+    // for create user
+    // await User.create({username:username, email:email, gender:gender},{
+    //   transaction: t
+    // });
+
+    // for getting users list
+    let users = await User.findAll(
+      {},
+      {
+        transaction: t,
+        lock: true,
+      }
+    );
+    t.commit();
+    res.status(200).json(users);
+  } catch (err) {
+    t.rollback();
+    // res.status(403).send({
+    //   status: true,
+    //   message: err,
+    // });
+    res.status(200).json("ok");
+  }
+};
+
 module.exports = {
   addUser,
   updateUser,
@@ -388,4 +549,9 @@ module.exports = {
   belongsTo,
   oneTomany,
   manyTomany,
+  oneTomanyPolymorphic,
+  manyTomanyPolymorphic,
+  loading,
+  paranoid,
+  transaction,
 };

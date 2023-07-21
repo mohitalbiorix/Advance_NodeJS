@@ -42,3 +42,43 @@ match: drop table on match condition
     
 * Scopes
    Scopes are used to help you reuse code. You can define commonly used queries, specifying options such as where, include, limit, etc.
+
+* Polymorphic
+    * A polymorphic association consists on two (or more) associations happening with the same foreign key.
+    * For example, consider the models Image, Video and Comment. The first two represent something that a user might post. We want to allow comments to be placed in both of them.
+    1. One to many
+        Ex.
+            image => id, title, url
+            video => id, title,txt
+            comment => id, title, commentableId, commentableType 
+                                   (img/video)    (img/video)
+
+    2. One to many
+        Ex.
+            image,
+            video,
+            tag,
+            tag_taggable
+
+            image => multiple tag , tag => multiple image
+            video => multiple tag, tag=> multiple video
+
+* Lazy ane Egar Loading
+    * Lazy Loading will generate 2 queries; one for findOne and the other for getContactInfo. While eager loading will generate 1 query to fetch both records.
+
+* Naming Strategies
+    underscored: true
+
+* paranoid
+    Sequelize supports the concept of paranoid tables. A paranoid table is one that, when told to delete a record, it will not truly delete it. Instead, a special column called deletedAt will have its value set to the timestamp of that deletion request.
+
+* Transaction
+
+    Sequelize supports two ways of using transactions:
+
+    Unmanaged transactions: Committing and rolling back the transaction should be done manually by the user (by calling the appropriate Sequelize methods).
+
+    Managed transactions: Sequelize will automatically rollback the transaction if any error is thrown, or commit the transaction otherwise. Also, if CLS (Continuation Local Storage) is enabled, all queries within the transaction callback will automatically receive the transaction object.
+
+* Hooks
+    Hooks (also known as lifecycle events), are functions which are called before and after calls in sequelize are executed. For example, if you want to always set a value on a model before saving it, you can add a beforeUpdate hook.

@@ -40,7 +40,26 @@ const User = sequelize.define(
     // createdAt: false // show created time based on value,
     // engine: 'MYISAM' change dataypes of table
     // tableName: 'userdata' // create  new table
+    //underscored: true, // Set underscored to true to use snake_case for column names
+
+    //  first method to insert hook
+    hooks: {
+      // beforeValidate:(user,options)=>{
+      //   user.username = "hook";
+      // },
+      // afterValidate: (user,option)=>{
+      //   user.username = "hook";
+      // }
+    },
   }
 );
+
+// second way to add hook
+User.addHook("afterValidate", (user, option) => {
+  user.username = "hook2";
+});
+
+// removedhook
+User.removeHook("afterValidate");
 
 module.exports = User;

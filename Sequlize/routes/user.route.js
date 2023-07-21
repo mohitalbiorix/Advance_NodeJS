@@ -17,5 +17,10 @@ router.get("/one-to-one", userController.oneToone);
 router.get("/belongsTo", userController.belongsTo);
 router.get("/one-to-many", userController.oneTomany);
 router.get("/many-to-many", userController.manyTomany);
+router.get("/one-to-many-poly", userController.oneTomanyPolymorphic);
+router.get("/many-to-many-poly", userController.manyTomanyPolymorphic);
+router.get("/loading", userController.loading);
+router.get("/paranoid", userController.paranoid);
+router.post("/transaction", userController.transaction);
 
 module.exports = router;
